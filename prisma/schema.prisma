@@ -1,0 +1,88 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+enum JobType {
+  FULL_TIME
+  PART_TIME
+  REMOTE
+  INTERNSHIP
+}
+
+enum Seniority {
+  INTERN
+  JUNIOR
+  MID
+  SENIOR
+  LEAD
+}
+
+model Company {
+  id       Int    @id @default(autoincrement())
+  name     String @unique
+  location String
+
+  jobs Job[]
+
+  @@index([name])
+  @@index([location])
+}
+
+model Category {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+
+  jobs Job[]
+
+  @@index([name])
+}
+
+model Job {
+  id          Int       @id @default(autoincrement())
+  title       String
+  description String
+  type        JobType
+  seniority   Seniority
+  salaryMin   Int
+  salaryMax   Int
+  postedAt    DateTime  @default(now())
+
+  companyId Int
+  company   Company @relation(fields: [companyId], references: [id])
+
+  categoryId Int
+  category   Category @relation(fields: [categoryId], references: [id])
+
+  skills JobSkill[]
+
+  @@index([companyId])
+  @@index([categoryId])
+  @@index([postedAt])
+}
+
+model Skill {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+
+  jobs JobSkill[]
+
+  @@index([name])
+}
+
+model JobSkill {
+  id      Int @id @default(autoincrement())
+  jobId   Int
+  skillId Int
+
+  job   Job   @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  skill Skill @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@unique([jobId, skillId])
+  @@index([jobId])
+  @@index([skillId])
+}
